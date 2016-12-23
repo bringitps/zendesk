@@ -1,0 +1,226 @@
+<html>
+<head>
+  <link rel="stylesheet" href="styles.css" type="text/css">
+</head>
+<body>
+  <section data-main>Loading...</section>
+  <script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
+  <script>
+    var client = ZAFClient.init();
+    client.invoke('resize', { width: '350px', height: '700px' });
+    function init(location) {
+      location === 'modal' ? new ModalApp() : new TicketApp();
+    }
+
+    function mainEl() {
+      return document.querySelector('section[data-main]');
+    }
+    var ModalApp = function() {
+      this.render(localStorage.getItem('mRma') || '');
+    };
+
+    ModalApp.prototype = {
+      render: function(text) {
+          var rma = localStorage.getItem('mRma') || '';
+          var ro =  rma.replace('RMA','RO');
+          var carrier = localStorage.getItem('mCarrier') || '';
+          var company = localStorage.getItem('mCompany') || '';
+          var attention = localStorage.getItem('mAttention') || '';
+          var add1 = localStorage.getItem('mAdd1') || '';
+          var add2 = localStorage.getItem('mAdd2') || '';
+          var email = localStorage.getItem('mEmail') || '';
+          var phone = localStorage.getItem('mPhone') || '';
+          var city = localStorage.getItem('mCity') || '';
+          var state = localStorage.getItem('mState') || '';
+          var zip = localStorage.getItem('mZip') || '';
+          var country = localStorage.getItem('mCountry') || '';
+          var options = localStorage.getItem('mOptions');
+          var item1 = localStorage.getItem('mItem1') || '';
+          var qty1 = localStorage.getItem('mQty1') || '';
+          var items = localStorage.getItem('mItems') || '';
+          var itemsToTable = prepareItems(items);
+          mainEl().innerHTML = '<div style="text-align:right;"><form id="modal">'+
+                                'RMA Number: <input id="rma1" type="text" value="'+rma+'" disabled size="32"><br>'+
+                                'Rep. Order #: <input id="ro1" type="text" value="'+ro+'" disabled size="32"><br>'+
+                                'Carrier: <input id="carrier1" type="text" value="'+carrier+'" size="32"><br>'+
+                                'Method: <select id="method1">'+options+'</select><br><br>'+
+                                '<fieldset style="border-color:#e6f2ff"><legend style="color: #0000ff; float:left;">Shipping Address</legend><br><br>'+
+                                'Company: <input id="company1" type="text" value="'+company+'" size="32"><br>'+
+                                'Attention to: <input id="attention1" type="text" value="'+attention+'" size="32"><br>'+
+                                'Address1: <input id="add1" type="text" value="'+add1+'" size="32"><br>'+
+                                'Address2: <input id="add2" type="text" value="'+add2+'" size="32"><br>'+
+                                'Email: <input id="email1" type="text" value="'+email+'" size="32"><br>'+
+                                'Phone: <input id="phone1" type="text" value="'+phone+'" size="32"><br>'+
+                                'City: <input id="city1" type="text" value="'+city+'" size="32"><br>'+
+                                'State: <input id="state1" type="text" value="'+state+'" size="32"><br>'+
+                                'ZipCode: <input id="zip1" type="text" value="'+zip+'" size="32"><br>'+
+                                'Country: <input id="country1" type="text" value="'+country+'" size="32"><br>'+
+                                '</fieldset><br><fieldset style="border-color:#e6f2ff"><legend style="color: #0000ff; float:left">Ship Items</legend><br><br>'+
+                                '<div  id="ITEMStablediv">'+
+                                  '<table id="itemsTable" border="0" width="100%">'+
+                                      '<thead>'+
+                                          '<tr>'+
+                                              '<td style="display:none;">ID</td>'+
+                                              '<td style="font-size: 10px; font-weight: bold;">Items</td>'+
+                                              '<td style="font-size: 10px; font-weight: bold;">Qty</td>'+
+                                              '<td style="font-size: 10px;"></td>'+
+                                          '</tr>'+
+                                      '</thead>'+
+                                      '<tbody>'+
+                                        itemsToTable+    
+                                      '</tbody>'+
+                                  '</table>'+
+                                  '<input type="button" id="newITEMbutton" value="Add Item" onclick="insRow(this)"/>'+
+                                '</div></fieldset><br><br>'+
+                                '<div style="text-align:center"><button type="submit">Create Replacement Order</button></div></form></div>';
+          document.querySelector('#modal').addEventListener('submit', this.onModalSubmit.bind(this));
+      },
+
+      onModalSubmit: function(evt) {
+        var vrma = evt.target.querySelector('#rma1').value;
+        var vro = evt.target.querySelector('#ro1').value;
+        var vcarrier = evt.target.querySelector('#carrier1').value;
+        var vmethodOpts = evt.target.querySelector('#method1');
+        var vmethod = vmethodOpts.options[vmethodOpts.selectedIndex].value;
+        var vcompany = evt.target.querySelector('#company1').value;
+        var vattention = evt.target.querySelector('#attention1').value;
+        var vadd1 = evt.target.querySelector('#add1').value;
+        var vadd2 = evt.target.querySelector('#add2').value;
+        var vemail = evt.target.querySelector('#email1').value;
+        var vphone = evt.target.querySelector('#phone1').value;
+        var vcity = evt.target.querySelector('#city1').value;
+        var vstate = evt.target.querySelector('#state1').value;
+        var vzip = evt.target.querySelector('#zip1').value;
+        var vcountry = evt.target.querySelector('#country1').value;
+        var table = document.getElementById( "itemsTable" );
+        console.log(table.rows.length);
+        var itemsArr = [];
+        for ( var i = 1; i < table.rows.length; i++ ) {
+          var itemVal = table.rows[i].cells[1].getElementsByTagName('input')[0];
+          var qtyVal = table.rows[i].cells[2].getElementsByTagName('input')[0];
+            itemsArr.push({
+                line_number: i,
+                item_number: itemVal.value,
+                quantity: qtyVal.value
+            });
+        }
+        var d = new Date();
+        var orderDate = d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+        evt.preventDefault();
+        var request= {
+                      "allow_partial": false,
+                      "orders": [
+                        {
+                          "order_number": vro,
+                          "account_number": "20690",
+                          "ordered_date": orderDate,
+                          "freight_account": "00500",
+                          "custom_field1": vrma,
+                          "shipping_carrier": vcarrier,
+                          "shipping_service": vmethod,
+                          "shipping_address": {
+                            "company": vcompany,
+                            "attention": vattention,
+                            "address1": vadd1,
+                            "address2": vadd2,
+                            "city": vcity,
+                            "state_province": vstate,
+                            "postal_code": vzip,
+                            "country_code": vcountry
+                          },
+                          "lines": itemsArr
+                        }
+                      ]
+                      };
+        console.log(JSON.stringify(request));
+        var settings = {
+                          url: 'https://api.dclcorp.com/api/v1/batches',
+                          headers: {"Authorization": "Basic bHljODAxOk1vdGlvbkAx"}, 
+                          type: 'POST',
+                          contentType: 'application/json',
+                          data: JSON.stringify(request)
+                        };
+        mainEl().innerHTML = 'Loading . . .';
+        client.request(settings).then(
+          function(response) {
+            client.invoke('resize', { height: '200px' });
+            client.invoke('notify', 'Replacement Order sent to DCL');  
+            client.set('ticket.customField:custom_field_47935227',vro);
+            localStorage.setItem('mResponse',vro);
+            mainEl().innerHTML = '<div style="text-align:center"><p> Replacement Order sent to DCL.<br><br></p><form id="modalResponse"><button type="submit">Close</button></form></div>';
+            document.querySelector('#modalResponse').addEventListener('submit', closeModal);
+          },
+          function(response) {
+            client.invoke('resize', { height: '200px' });
+            var msg = 'Error Code:' +  response.responseJSON.error_code + ' Msg:' + response.responseJSON.error_message;
+            client.invoke('notify', msg, 'error');
+             mainEl().innerHTML = '<div style="text-align:center"><p> '+msg+'<br><br></p><form id="modalResponse"><button type="submit">Close</button></form></div>';
+            document.querySelector('#modalResponse').addEventListener('submit', closeModal);
+          }
+        );
+      }
+    };
+
+     function deleteRow(el) {
+      var table = document.getElementById('itemsTable'),
+        tbody = table.getElementsByTagName('tbody')[0],
+        clone = tbody.rows[0].cloneNode(true);
+        var i = el.parentNode.parentNode.rowIndex;
+        if (i > 1){
+          table.deleteRow(i);
+          while (table.rows[i]) {
+              updateRow(table.rows[i], i, false);
+              i++;
+          }
+      }else{
+        var client = ZAFClient.init();
+        client.invoke('notify', 'Sorry, you cant delete this row, try to update the fields instead.','error');
+      }
+    }
+
+    function insRow() {
+      var table = document.getElementById('itemsTable'),
+        tbody = table.getElementsByTagName('tbody')[0],
+        clone = tbody.rows[0].cloneNode(true);
+        var new_row = updateRow(clone.cloneNode(true), ++tbody.rows.length, true);
+        tbody.appendChild(new_row);
+    }
+
+    function updateRow(row, i, reset) {
+        row.cells[0].innerHTML = i;
+        var inp1 = row.cells[1].getElementsByTagName('input')[0];
+        var inp2 = row.cells[2].getElementsByTagName('input')[0];
+        var inp3 = row.cells[3].getElementsByTagName('input')[0];
+        inp1.id = 'item' + i;
+        inp2.id = 'qty' + i;
+        inp2.id = 'btnRmv' + i;
+        if (reset) {
+            inp1.value = inp2.value = '';
+        }
+        return row;
+    }  
+
+    function prepareItems(items){
+      var itArray = JSON.parse(items);
+      var response = '';
+      for (var i in itArray){
+        var x = parseInt(i) +1;
+        response+= '<tr>'+
+                      '<td style="display:none;">'+x+'</td>'+
+                      '<td><input type="text" id="item'+x+'" value="'+itArray[i].item_number+'" size="20"/></td>   '+       
+                      '<td><input size=3 type="text" id="qty'+x+'" value="'+itArray[i].quantity+'"/></td>'+
+                      '<td><input type="button" id="btnRmv" value="Remove" onclick="deleteRow(this)"/></td>'+
+                  '</tr>'; 
+      }
+      return response;
+    } 
+
+    function closeModal(){
+      client.invoke('destroy');
+    }
+    client.on('app.registered', function(data) {
+      init(data.context.location);
+    });
+  </script>
+</body>
+</html>

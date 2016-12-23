@@ -1,0 +1,15 @@
+{
+  "name": "Zendesk_DCL_RMA_Integration",
+  "author": {
+    "name": "seko",
+    "email": "sergio.kortright@bringitps.com",
+    "url": ""
+  },
+  "defaultLocale": "en",
+  "private": true,
+  "location": { "zendesk":
+    { "ticket_sidebar": "assets/iframe.html" }
+  },
+  "version": "1.0",
+  "frameworkVersion": "2.0"
+}

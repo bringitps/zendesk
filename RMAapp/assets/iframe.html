@@ -1,0 +1,70 @@
+<html>
+<head>
+	<link href="https://cdn.jsdelivr.net/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+	  <link href="main.css" rel="stylesheet">
+</head>
+<body>
+  <div id="content"></div>
+  		<form id="task-form" class="form-horizontal">
+  			<button id="add-btn" class="btn btn-primary btn-small">Create RMA</button>
+			<button id="get-btn" class="btn btn-primary btn-small">Get RMA Disposition Status</button>
+			<button id="ship-btn" class="btn btn-primary btn-small">Create replacement Order</button>
+		</form>
+	<script id="success-template" type="text/x-handlebars-template">
+		  <b>RMA number:</b><br>
+		  {{rma_number}}<br><br>
+
+		  <b>Return Label URL:</b><br>
+		  {{return_label_url}}<br><br>
+
+		  <b>Return Label Tracking Number:</b><br>
+		  {{return_label_tracking_number}}<br><br>
+	</script>
+	<script id="main-hdbs" type="text/x-handlebars-template">
+
+			<table>
+				<tr>
+				  <td><b>Customer:</b></td>
+				  <td><b>{{first_name}} {{last_name}}</b><br/> {{email}}</td>
+				</tr>
+				<tr>
+				  <td><b>Order ID:</b></td>
+				  <td>{{id}}</td>
+				</tr>
+				<tr>
+				  <td><b>Order #:</b></td>
+				  <td>{{name}}</td>
+				</tr>
+				<tr>
+				  <td><b>Lines:</b></td>
+				  <td style="white-space: pre-line;">{{line_items}}</td>
+				</tr>
+			</table>
+			<p style="white-space: pre-line;">{{notes}}</p>
+	</script>
+	<script id="error-template" type="text/x-handlebars-template">
+		<p>{{error_code}} - {{error_message}}</p>
+	</script>
+		<script id="rma-template" type="text/x-handlebars-template">
+		    <table>
+				<tr>
+				  <td>RMA number:</td>
+				  <td>{{rma_number}}</td>
+				</tr>
+				<tr>
+				  <td>Disposition Code: </td>
+				  <td><b>{{disposition}}</b></td>
+				</tr>
+				<tr>
+				  <td>Description: </td>
+				  <td><b>{{desc}}</b></td>
+				</tr>
+			</table>
+	</script>
+  <!-- https://github.com/zendesk/zendesk_app_framework_sdk -->
+	<script src="https://cdn.jsdelivr.net/jquery/3.0.0/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+	<script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
+	<script type="text/javascript" src="mainApp.js"></script>
+</body>
+</html>
